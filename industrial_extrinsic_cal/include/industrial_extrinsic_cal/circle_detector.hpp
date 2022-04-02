@@ -82,6 +82,8 @@ public:
 
     CV_PROP_RW bool filterByConvexity;
     CV_PROP_RW float minConvexity, maxConvexity;
+    
+    CV_PROP_RW float random_wobble;
 
     void read(const FileNode& fn);
     void write(FileStorage& fs) const;

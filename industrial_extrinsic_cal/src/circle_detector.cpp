@@ -284,6 +284,8 @@ void CircleDetectorImpl::findCircles(InputArray _image, InputArray _binaryImage,
     // find center
     // center.location = Point2d(moms.m10 / moms.m00, moms.m01 / moms.m00);
     center.location = box.center;
+    
+    //printf("Random wobble is %f\n", params.random_wobble);
 
     // one more filter by color of central pixel
     if (params.filterByColor)
@@ -303,15 +305,32 @@ void CircleDetectorImpl::findCircles(InputArray _image, InputArray _binaryImage,
     //	center.radius = (dists[(dists.size() - 1) / 2] + dists[dists.size() / 2]) / 2.;
     //}
     center.radius = (box.size.height + box.size.width) / 4.0;
+    
+    //printf("Old center was %f %f\n", center.location.x, center.location.y);
+    
+    double u_one = static_cast <float> (rand()) / static_cast <float> (RAND_MAX);
+	double u_two = static_cast <float> (rand()) / static_cast <float> (RAND_MAX);
+	
+	double normal= sqrt(-2.0 * log(u_one)) * cos(2 * 3.14159 * u_two);//Actually ln: http://www.cplusplus.com/reference/cmath/log/
+	double u_distort = (normal * -0.5 * params.random_wobble);
+	u_one = static_cast <float> (rand()) / static_cast <float> (RAND_MAX);
+	u_two = static_cast <float> (rand()) / static_cast <float> (RAND_MAX);
+	normal= sqrt(-2.0 * log(u_one)) * cos(2 * 3.14159 * u_two);
+	double v_distort = (normal * -0.5 * params.random_wobble);
+	center.location.x += u_distort;
+	center.location.y += v_distort;
+	
+	//printf("New center is %f %f\n", center.location.x, center.location.y);
+    
     centers.push_back(center);
 
 #ifdef DEBUG_CIRCLE_DETECTOR
-//    circle( keypointsImage, center.location, 1, Scalar(0,0,255), 1 );
+    //circle( keypointsImage, center.location, 1, Scalar(0,0,255), 1 );
 #endif
   }
 #ifdef DEBUG_CIRCLE_DETECTOR
-//  imshow("bk", keypointsImage );
-//  waitKey();
+  //imshow("bk", keypointsImage );
+  //waitKey();
 #endif
 }
 
@@ -336,8 +355,8 @@ void CircleDetectorImpl::detect(InputArray _image, std::vector<KeyPoint>& keypoi
     threshold(grayscaleImage, binarizedImage, thresh, 255, THRESH_BINARY);
 
 #ifdef DEBUG_CIRCLE_DETECTOR
-//    Mat keypointsImage;
-//    cvtColor( binarizedImage, keypointsImage, CV_GRAY2RGB );
+    Mat keypointsImage;
+    cvtColor( binarizedImage, keypointsImage, COLOR_GRAY2RGB );
 #endif
 
     vector<Center> curCenters;
@@ -346,7 +365,7 @@ void CircleDetectorImpl::detect(InputArray _image, std::vector<KeyPoint>& keypoi
     for (size_t i = 0; i < curCenters.size(); i++)
     {
 #ifdef DEBUG_CIRCLE_DETECTOR
-//      circle(keypointsImage, curCenters[i].location, curCenters[i].radius, Scalar(0,0,255),-1);
+      circle(keypointsImage, curCenters[i].location, curCenters[i].radius, Scalar(0,0,255),-1);
 #endif
 
       bool isNew = true;
@@ -381,8 +400,8 @@ void CircleDetectorImpl::detect(InputArray _image, std::vector<KeyPoint>& keypoi
     std::copy(newCenters.begin(), newCenters.end(), std::back_inserter(centers));
 
 #ifdef DEBUG_CIRCLE_DETECTOR
-//    imshow("binarized", keypointsImage );
-// waitKey();
+    imshow("binarized", keypointsImage );
+ waitKey();
 #endif
   }
 
@@ -402,13 +421,13 @@ void CircleDetectorImpl::detect(InputArray _image, std::vector<KeyPoint>& keypoi
   }
 
 #ifdef DEBUG_CIRCLE_DETECTOR
-  namedWindow("keypoints", CV_WINDOW_NORMAL);
+  namedWindow("keypoints", WINDOW_NORMAL);
   Mat outImg = image.clone();
   for (size_t i = 0; i < keypoints.size(); i++)
   {
     circle(outImg, keypoints[i].pt, keypoints[i].size, Scalar(params.circleColor, 0, params.circleColor), -1);
   }
-  // drawKeypoints(image, keypoints, outImg);
+   drawKeypoints(image, keypoints, outImg);
   imshow("keypoints", outImg);
   waitKey();
 #endif

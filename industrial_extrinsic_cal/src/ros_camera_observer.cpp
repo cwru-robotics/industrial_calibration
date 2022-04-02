@@ -782,6 +782,9 @@ bool ROSCameraObserver::pullCameraInfo(double& fx, double& fy, double& cx, doubl
 
 void ROSCameraObserver::dynReConfCallBack(industrial_extrinsic_cal::circle_grid_finderConfig& config, uint32_t level)
 {
+
+  srand (12345);
+
   CircleDetector::Params circle_params;
   circle_params.thresholdStep = 10;
   circle_params.minThreshold = config.min_threshold;
