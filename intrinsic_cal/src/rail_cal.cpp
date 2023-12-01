@@ -296,9 +296,15 @@ bool RailCalService::executeCallBack(intrinsic_cal::rail_ical_run::Request& req,
   Solver::Options options;
   Solver::Summary summary;
   options.linear_solver_type = ceres::DENSE_SCHUR;
-  options.minimizer_progress_to_stdout = true;
+  options.minimizer_progress_to_stdout = false;
   options.max_num_iterations = 2000;
+  //Think auto is bad practice but type def is really long...
+	auto begin_time = std::chrono::system_clock::now();
   ceres::Solve(options, &problem, &summary);
+  auto end_time = std::chrono::system_clock::now();
+    	
+    	std::chrono::duration<double> delta = (end_time - begin_time);
+    	std::cout << "\nElapsed time is " << delta.count() << "\n";
   if (summary.termination_type != ceres::NO_CONVERGENCE)
   {
     double initial_cost = summary.initial_cost / total_observations;
